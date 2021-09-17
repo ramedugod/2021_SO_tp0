@@ -14,12 +14,23 @@ int iniciar_servidor(void)
     getaddrinfo(IP, PUERTO, &hints, &servinfo);
 
     // Creamos el socket de escucha del servidor
-
     // Asociamos el socket a un puerto
-
     // Escuchamos las conexiones entrantes
+    //ya estaban de antes
+    for (p = servinfo; p != NULL; p = p->ai_next)
+    {
+        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+            continue;
 
-    freeaddrinfo(servinfo);
+        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1)
+        {
+            close(socket_servidor);
+            continue;
+        }
+        break;
+    }
+
+	listen(socket_servidor, SOMAXCONN);    freeaddrinfo(servinfo);
 
     log_trace(logger, "Listo para escuchar a mi cliente");
 
@@ -31,8 +42,8 @@ int esperar_cliente(int socket_servidor)
 	struct sockaddr_in dir_cliente;
 	int tam_direccion = sizeof(struct sockaddr_in);
 
-	// Aceptamos un nuevo cliente
-	int socket_cliente = 0;
+	// Aceptamos un nuevo cliente //ya estaba de antes???
+	int socket_cliente =  accept(socket_servidor, (void*) &dir_cliente, (socklen_t*)&tam_direccion);
 
 	log_info(logger, "Se conecto un cliente!");
 
@@ -83,13 +94,12 @@ t_list* recibir_paquete(int socket_cliente)
 	while(desplazamiento < size)
 	{
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
-		desplazamiento+=sizeof(int);
+		desplazamiento += sizeof(int);
 		char* valor = malloc(tamanio);
-		memcpy(valor, buffer+desplazamiento, tamanio);
-		desplazamiento+=tamanio;
+		memcpy(valor, buffer + desplazamiento, tamanio);
+		desplazamiento += tamanio;
 		list_add(valores, valor);
 	}
 	free(buffer);
 	return valores;
-	return NULL;
 }

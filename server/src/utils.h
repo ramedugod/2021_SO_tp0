@@ -17,7 +17,7 @@ typedef enum
 {
 	MENSAJE,
 	PAQUETE
-}op_code;
+} op_code;
 
 t_log* logger;
 
